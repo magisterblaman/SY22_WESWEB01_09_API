@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Skapa profil</title>
+</head>
+<body>
+	<form action="/profiles" method="POST">
+		<input type="text" name="profileName" placeholder="Profilnamn" required>
+		<input type="email" name="profileEmail" placeholder="Mejladress" required>
+		<input type="number" name="profileAge" min="13" max="99" placeholder="Ålder" required>
+		<button type="submit">Lägg till profil</button>
+	</form>
+</body>
+</html>
