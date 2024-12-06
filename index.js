@@ -21,7 +21,7 @@ async function handleRequest(request, response) {
 
 	let nextSegment = pathSegments.shift();
 
-	if (nextSegment === 'create-user') {
+	if (nextSegment === 'create-profile') {
 		if (request.method !== 'GET') {
 			response.writeHead(405, { 'Content-Type': 'text/plain' });
 			response.write('405 Method Not Allowed');

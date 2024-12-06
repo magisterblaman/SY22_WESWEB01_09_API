@@ -1,16 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>%{profileName}% - Profil</title>
 </head>
+
 <body>
+	<a href="/profiles">Tillbaka till profillistan</a>
 	<h2>Namn</h2>
 	<p>%{profileName}%</p>
 	<h2>Mejladress</h2>
 	<p>%{profileEmail}%</p>
 	<h2>Ålder</h2>
 	<p>%{profileAge}%</p>
+	<button>Redigera profil</button>
+	<button onclick="sendDeleteRequest()">Radera profil</button>
+
+	<script>
+		function sendDeleteRequest() {
+			let request = new XMLHttpRequest();
+
+			request.onload = function() {
+				if (request.status === 204) {
+					alert("Profilen har raderats");
+					window.location = '/profiles';
+				} else {
+					alert("Kunde inte radera profilen");
+				}
+			};
+
+			request.open('DELETE', '/profiles/%{profileId}%');
+
+			request.send();
+		}
+	</script>
 </body>
+
 </html>

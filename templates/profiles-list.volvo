@@ -9,6 +9,7 @@
 	<h1>Profiler</h1>
 	<ul>
 		%{profilesList}%
+		<li><a href="/create-profile">Skapa ny profil</a></li>
 	</ul>
 </body>
 </html>

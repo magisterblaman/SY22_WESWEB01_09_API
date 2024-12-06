@@ -80,41 +80,56 @@ export async function handleProfilesRoute(pathSegments, url, request, response) 
 		return;
 	}
 
-	if (request.method !== 'GET') {
-		response.writeHead(405, { 'Content-Type': 'text/plain' });
-		response.write('405 Method Not Allowed');
+	if (request.method === 'GET') {
+		let profileDocument;
+		try {
+			profileDocument = await dbo.collection('profiles').findOne({
+				"_id": new ObjectId(nextSegment)
+			});
+		} catch (e) {
+			response.writeHead(404, { 'Content-Type': 'text/plain' });
+			response.write('404 Not Found');
+			response.end();
+			return;
+		}
+
+		if (!profileDocument) {
+			response.writeHead(404, { 'Content-Type': 'text/plain' });
+			response.write('404 Not Found');
+			response.end();
+			return;
+		}
+
+		let template = (await fs.readFile('templates/profile.volvo')).toString();
+
+		template = template.replaceAll('%{profileId}%', 
+			cleanupHTMLOutput(profileDocument._id.toString()));
+		template = template.replaceAll('%{profileName}%', cleanupHTMLOutput(profileDocument.name));
+		template = template.replaceAll('%{profileEmail}%', cleanupHTMLOutput(profileDocument.email));
+		template = template.replaceAll('%{profileAge}%', cleanupHTMLOutput(profileDocument.age));
+
+		response.writeHead(200, { 'Content-Type': 'text/html;charset=UTF-8' });
+		response.write(template);
+		response.end();
+		return;
+	}
+
+	if (request.method === 'DELETE') {
+		try {
+			await dbo.collection('profiles').deleteOne({
+				"_id": new ObjectId(nextSegment)
+			});
+		} catch (e) {
+			response.writeHead(404, { 'Content-Type': 'text/plain' });
+			response.write('404 Not Found');
+			response.end();
+			return;
+		}
+
+		response.writeHead(204);
 		response.end();
 		return;
 	}
 
 
-	let profileDocument;
-	try {
-		profileDocument = await dbo.collection('profiles').findOne({
-			"_id": new ObjectId(nextSegment)
-		});
-	} catch (e) {
-		response.writeHead(404, { 'Content-Type': 'text/plain' });
-		response.write('404 Not Found');
-		response.end();
-		return;
-	}
-
-	if (!profileDocument) {
-		response.writeHead(404, { 'Content-Type': 'text/plain' });
-		response.write('404 Not Found');
-		response.end();
-		return;
-	}
-
-	let template = (await fs.readFile('templates/profile.volvo')).toString();
-
-	template = template.replaceAll('%{profileName}%', cleanupHTMLOutput(profileDocument.name));
-	template = template.replaceAll('%{profileEmail}%', cleanupHTMLOutput(profileDocument.email));
-	template = template.replaceAll('%{profileAge}%', cleanupHTMLOutput(profileDocument.age));
-
-	response.writeHead(200, { 'Content-Type': 'text/html;charset=UTF-8' });
-	response.write(template);
-	response.end();
-	return;
 }
