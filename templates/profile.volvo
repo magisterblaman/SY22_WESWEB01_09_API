@@ -15,7 +15,7 @@
 	<p>%{profileEmail}%</p>
 	<h2>Ålder</h2>
 	<p>%{profileAge}%</p>
-	<button>Redigera profil</button>
+	<a href="/profiles/%{profileId}%/edit"><button>Redigera profil</button></a>
 	<button onclick="sendDeleteRequest()">Radera profil</button>
 
 	<script>

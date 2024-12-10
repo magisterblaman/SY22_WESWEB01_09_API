@@ -80,56 +80,139 @@ export async function handleProfilesRoute(pathSegments, url, request, response) 
 		return;
 	}
 
-	if (request.method === 'GET') {
-		let profileDocument;
-		try {
-			profileDocument = await dbo.collection('profiles').findOne({
+	let nextNextSegment = pathSegments.shift();
+
+	if (!nextNextSegment) {
+		if (request.method === 'GET') {
+			let profileDocument;
+			try {
+				profileDocument = await dbo.collection('profiles').findOne({
+					"_id": new ObjectId(nextSegment)
+				});
+			} catch (e) {
+				response.writeHead(404, { 'Content-Type': 'text/plain' });
+				response.write('404 Not Found');
+				response.end();
+				return;
+			}
+
+			if (!profileDocument) {
+				response.writeHead(404, { 'Content-Type': 'text/plain' });
+				response.write('404 Not Found');
+				response.end();
+				return;
+			}
+
+			let template = (await fs.readFile('templates/profile.volvo')).toString();
+
+			template = template.replaceAll('%{profileId}%',
+				cleanupHTMLOutput(profileDocument._id.toString()));
+			template = template.replaceAll('%{profileName}%', cleanupHTMLOutput(profileDocument.name));
+			template = template.replaceAll('%{profileEmail}%', cleanupHTMLOutput(profileDocument.email));
+			template = template.replaceAll('%{profileAge}%', cleanupHTMLOutput(profileDocument.age));
+
+			response.writeHead(200, { 'Content-Type': 'text/html;charset=UTF-8' });
+			response.write(template);
+			response.end();
+			return;
+		}
+
+		if (request.method === 'DELETE') {
+			try {
+				await dbo.collection('profiles').deleteOne({
+					"_id": new ObjectId(nextSegment)
+				});
+			} catch (e) {
+				response.writeHead(404, { 'Content-Type': 'text/plain' });
+				response.write('404 Not Found');
+				response.end();
+				return;
+			}
+
+			response.writeHead(204);
+			response.end();
+			return;
+		}
+
+		if (request.method === 'PUT') {
+			let body = await getRequestBody(request);
+
+			let params = new URLSearchParams(body);
+
+			if (!params.get('profileName') || !params.get('profileEmail')) {
+
+				response.writeHead(400, { 'Content-Type': 'text/plain' });
+				response.write('400 Bad Request');
+				response.end();
+				return;
+			}
+
+			await dbo.collection('profiles').updateOne({
 				"_id": new ObjectId(nextSegment)
+			}, {
+				'$set': {
+					'name': params.get('profileName'),
+					'email': params.get('profileEmail')
+				}
 			});
-		} catch (e) {
-			response.writeHead(404, { 'Content-Type': 'text/plain' });
-			response.write('404 Not Found');
+
+			response.writeHead(204);
 			response.end();
 			return;
 		}
 
-		if (!profileDocument) {
-			response.writeHead(404, { 'Content-Type': 'text/plain' });
-			response.write('404 Not Found');
-			response.end();
-			return;
-		}
-
-		let template = (await fs.readFile('templates/profile.volvo')).toString();
-
-		template = template.replaceAll('%{profileId}%', 
-			cleanupHTMLOutput(profileDocument._id.toString()));
-		template = template.replaceAll('%{profileName}%', cleanupHTMLOutput(profileDocument.name));
-		template = template.replaceAll('%{profileEmail}%', cleanupHTMLOutput(profileDocument.email));
-		template = template.replaceAll('%{profileAge}%', cleanupHTMLOutput(profileDocument.age));
-
-		response.writeHead(200, { 'Content-Type': 'text/html;charset=UTF-8' });
-		response.write(template);
+		response.writeHead(405, { 'Content-Type': 'text/plain' });
+		response.write('405 Method Not Allowed');
 		response.end();
 		return;
 	}
 
-	if (request.method === 'DELETE') {
-		try {
-			await dbo.collection('profiles').deleteOne({
-				"_id": new ObjectId(nextSegment)
-			});
-		} catch (e) {
-			response.writeHead(404, { 'Content-Type': 'text/plain' });
-			response.write('404 Not Found');
+	if (nextNextSegment === 'edit') {
+		if (request.method === 'GET') {
+			let profileDocument;
+			try {
+				profileDocument = await dbo.collection('profiles').findOne({
+					"_id": new ObjectId(nextSegment)
+				});
+			} catch (e) {
+				response.writeHead(404, { 'Content-Type': 'text/plain' });
+				response.write('404 Not Found');
+				response.end();
+				return;
+			}
+
+			if (!profileDocument) {
+				response.writeHead(404, { 'Content-Type': 'text/plain' });
+				response.write('404 Not Found');
+				response.end();
+				return;
+			}
+
+
+			let template = (await fs.readFile('templates/edit-profile-page.volvo')).toString();
+
+			template = template.replaceAll('%{profileId}%',
+				cleanupHTMLOutput(profileDocument._id.toString()));
+			template = template.replaceAll('%{profileName}%', cleanupHTMLOutput(profileDocument.name));
+			template = template.replaceAll('%{profileEmail}%', cleanupHTMLOutput(profileDocument.email));
+			template = template.replaceAll('%{profileAge}%', cleanupHTMLOutput(profileDocument.age));
+
+			response.writeHead(200, { 'Content-Type': 'text/html;charset=UTF-8' });
+			response.write(template);
 			response.end();
 			return;
 		}
 
-		response.writeHead(204);
+		response.writeHead(405, { 'Content-Type': 'text/plain' });
+		response.write('405 Method Not Allowed');
 		response.end();
 		return;
 	}
 
 
+
+	response.writeHead(404, { 'Content-Type': 'text/plain' });
+	response.write('404 Not Found');
+	response.end();
+	return;
 }

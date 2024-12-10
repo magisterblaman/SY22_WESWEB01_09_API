@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Redigera profil</title>
+</head>
+
+<body>
+	<h1>Redigera %{profileName}%</h1>
+	<form action="/profiles/%{profileId}%" method="POST" onsubmit="sendPutRequest(event)">
+		<input type="text" name="profileName" placeholder="Profilnamn" value="%{profileName}%" required>
+		<input type="email" name="profileEmail" placeholder="Mejladress" value="%{profileEmail}%" required>
+		<button type="submit">Slutför profiländringar</button>
+	</form>
+
+	<script>
+		function sendPutRequest(e) {
+			e.preventDefault();
+
+			let request = new XMLHttpRequest();
+
+			request.onload = function() {
+				if (request.status === 204) {
+					window.location = '/profiles/%{profileId}%';
+				} else {
+					alert('Kunde inte ändra profilen.');
+				}
+			};
+
+			request.open('PUT', '/profiles/%{profileId}%');
+
+			request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+			let formData = new FormData(e.target);
+			let asQueryString = new URLSearchParams(formData).toString();
+
+			request.send(asQueryString);
+		}
+	</script>
+</body>
+
+</html>
